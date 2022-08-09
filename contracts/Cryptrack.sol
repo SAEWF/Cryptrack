@@ -45,6 +45,19 @@ contract Cryptrack {
         return allRecords;
     }
 
+    function getOrigin(string memory ipfsHash) public view returns (string memory) {
+        // checking whether previous hash is already stored or not
+        require(keccak256(bytes(prevHash[ipfsHash])) != keccak256(bytes("")), "Previous hash is not present");
+
+        string memory ipfsHash_ = ipfsHash;
+
+        while(keccak256(bytes(prevHash[ipfsHash])) != keccak256(bytes("-1"))){
+            ipfsHash = prevHash[ipfsHash];
+        }
+        
+        return ipfsHash;
+    }
+
     function getPrevHash(string memory s) public view returns (string memory){
         string memory empty = "empty";
         if(keccak256(bytes(prevHash[s])) == keccak256(bytes("")))
