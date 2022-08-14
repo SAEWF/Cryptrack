@@ -6,10 +6,12 @@ const pinataSecretApiKey = process.env.pinata_secret_api_key;
 const pinata = pinataSDK(pinataApiKey, pinataSecretApiKey);
 
 const getPreviousHash = async (hash) => { 
+    // blockchain call to be written for getting the next node
     return;
 }
 
 const pushHash = async (hash, prev_hash) => {
+    // blockchain call to be written for pushing the node
     return;
 }
 
