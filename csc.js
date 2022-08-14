@@ -1,6 +1,9 @@
+const Web3 = require('web3');
 const rpcUrl = "https://testnet-rpc.coinex.net/";
-// const MyContract = {};
-const address = "0x6d0575DEb29a270cB648F93E81FB667a56CADe84";
+const web3 = new Web3(rpcUrl);
+const contract_address = "0xd60eeE192cabd02C36C7bAA8815122B1D2883205";
+const public_address = 'wallet address';
+const private_key = 'same wallet address private key';
 const abi = [
 	{
 		"inputs": [
@@ -72,35 +75,39 @@ const abi = [
 		"type": "function"
 	}
 ]
-
-const init2 = async () => {
-  const web3 = new Web3(rpcUrl);
-//   const networkId = await web3.eth.net.getId();
-    const networkId = 53;
-  const myContract = new web3.eth.Contract(
+const myContract = new web3.eth.Contract(
     abi,
-    address
+    contract_address
   );
-  web3.eth.accounts.wallet.add(process.env.metamask_private_key);
+web3.eth.accounts.wallet.add(private_key);
 
-  const tx = myContract.methods.getPrevHash('a');
-  const gas = await tx.estimateGas({from: address});
-  const gasPrice = await web3.eth.getGasPrice();
-  const data = tx.encodeABI();
-  const nonce = await web3.eth.getTransactionCount(address);
-  const txData = {
-    from: address,
-    to: myContract.options.address,
-    data: data,
-    gas,
-    gasPrice,
-    nonce 
-    // chain: 'rinkeby', 
-    // hardfork: 'istanbul'
-  };
-
-  console.log(`Old data value: ${await myContract.methods.data().call()}`);
-  const receipt = await web3.eth.sendTransaction(txData);
-  console.log(`Transaction hash: ${receipt.transactionHash}`);
-  console.log(`New data value: ${await myContract.methods.data().call()}`);
+async function signThisTransaction(tx)
+{
+	const gas = await tx.estimateGas({from: public_address});
+	const gasPrice = await web3.eth.getGasPrice();
+	const data = tx.encodeABI();
+	const nonce = await web3.eth.getTransactionCount(public_address);
+	const txData = {
+		from: public_address,
+		to: myContract.options.address,
+		data: data,
+		gas,
+		gasPrice,
+		nonce 
+	};
+	return txData;
 }
+
+async function todo()
+{
+	console.log(`Old data value: ${await myContract.methods.getPrevHash('e').call()}`);
+
+	let tx = myContract.methods.updateTimestamp('e', 'd');
+	let signedTx = await signThisTransaction(tx);
+	const receipt = await web3.eth.sendTransaction(signedTx);
+	console.log(`Transaction hash: ${receipt.transactionHash}`);
+
+	console.log(`New data value: ${await myContract.methods.getPrevHash('e').call()}`);
+
+}
+todo();
