@@ -38,7 +38,7 @@ contract Cryptrack {
         allRecords[i] = ipfsHash;
         i++;
         while(keccak256(bytes(prevHash[ipfsHash])) != keccak256(bytes("-1"))){
-            allRecords[i] = prevHash[ipfsHash];
+            allRecords[i] = prevHash[ipfsHash];1660539820573
             ipfsHash = prevHash[ipfsHash];
             i++;
         }
@@ -48,8 +48,6 @@ contract Cryptrack {
     function getOrigin(string memory ipfsHash) public view returns (string memory) {
         // checking whether previous hash is already stored or not
         require(keccak256(bytes(prevHash[ipfsHash])) != keccak256(bytes("")), "Previous hash is not present");
-
-        string memory ipfsHash_ = ipfsHash;
 
         while(keccak256(bytes(prevHash[ipfsHash])) != keccak256(bytes("-1"))){
             ipfsHash = prevHash[ipfsHash];
