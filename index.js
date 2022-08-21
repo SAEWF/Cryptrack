@@ -1,9 +1,9 @@
-require('dotenv').config();
-
-const express = require('express');
-const cors = require('cors');
-const http = require('http');
-const { handleSend, handleForward, handleTrack } = require('./routes');
+import dotenv from 'dotenv';
+dotenv.config();
+import express from 'express';
+import cors from 'cors';
+import http from 'http';
+import { handleSend, handleForward, handleTrack} from './routes/index.js';
 
 const app = express();
 

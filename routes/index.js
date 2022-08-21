@@ -1,10 +1,14 @@
-const pinataSDK = require('@pinata/sdk');
-const Web3 = require('web3');
+import dotenv from 'dotenv';
+dotenv.config();
+import pinataSDK from '@pinata/sdk';
+import Web3 from 'web3';
+import fetch from 'node-fetch';
 const rpcUrl = "https://testnet-rpc.coinex.net/";
 const web3 = new Web3(rpcUrl);
 const contract_address = "0xd60eeE192cabd02C36C7bAA8815122B1D2883205";
 const public_address = process.env.metamask_public_key;
 const private_key = process.env.metamask_private_key;
+// console.log(public_address, private_key);
 const abi = [
 	{
 		"inputs": [
@@ -136,8 +140,8 @@ const trackMessage = async (hash) => {
 
 const retrieveMessage = async (hash) => {
 	try {
-		const url = 'https://gateway.pinata.cloud/ipfs/' + hash;
-		// console.log(url);
+		const url = 'https://ipfs.originx.games/ipfs/' + hash;
+		console.log(url);
 		const result = await fetch(url).then(res => res.json()).catch(err=> console.log(err));
 
 		return result;
@@ -182,7 +186,7 @@ const pinJSONToIPFS = async (res, metadata) => {
     }
 };
 
-const handleSend = async (req, res) => { 
+export const handleSend = async (req, res) => { 
     let { msg, user, time } = req.body;
     if (!time) time = new Date().getTime();
 
@@ -194,7 +198,7 @@ const handleSend = async (req, res) => {
 
 }
 
-const handleForward = async (req, res) => { 
+export const handleForward = async (req, res) => { 
     const { msg, user, time, prev_user, prev_time } = req.body;
     let prev_hash = await pinJSONToIPFS(res, { msg, user: prev_user, time: prev_time });
     console.log('previous hash', prev_hash);
@@ -207,25 +211,24 @@ const handleForward = async (req, res) => {
     res.status(200).json({prev_hash, hash, resp});
 }
 
-const handleTrack = async (req, res) => {
-    let { msg, user, time } = req.body;
-    if (!time) time = new Date().getTime();
+export const handleTrack = async (req, res) => {
+    try {
+        let { msg, user, time } = req.body;
+        if (!time) time = new Date().getTime();
 
-    let hash = await pinJSONToIPFS(res, { msg, user, time });
+        let hash = await pinJSONToIPFS(res, { msg, user, time });
 
-	const hashes = await trackMessage(hash);
-	let resp = [];
-	// process each ipfsHash and get data from pinata
-	for(let i = 0; i < hashes.length; i++) {
-		const ipfsHash = hashes[i];
-		console.log('ipfsHash', ipfsHash);
-		const result = await retrieveMessage(ipfsHash);
-		resp.push(result);
-	}
-
-
-    res.status(200).json(resp);
-
+        const hashes = await trackMessage(hash);
+        let result = hashes.map(async (ipfsHash) => {
+            console.log('ipfsHash', ipfsHash);
+            const res = await retrieveMessage(ipfsHash);
+            // resp.push({...res, hash: ipfsHash});
+            return res;
+        })
+        result = await Promise.all(result);
+        res.status(200).json(result);
+    } catch (err) {
+        console.log(err);
+        res.json(err);
+    }
 }
-
-module.exports = {handleSend, handleForward, handleTrack}
