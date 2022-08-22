@@ -34,13 +34,38 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
 
 exports.verifyUser = passport.authenticate('jwt', {session: false});
 
-exports.verifyAdmin = function(req,res,next){
-    if(req.user.admin){
+exports.verifyAdmin = function (req, res, next) {
+    if (req.user.admin) {
         next();
     }
-    else{
-        var err=new Error("You are not authorized to perform this operation!");
-        err.status=403;
+    else {
+        var err = new Error("You are not authorized to perform this operation!");
+        err.status = 403;
+        return next(err);
+    }
+}
+
+exports.authAPI = async function (req, res, next) {
+    try {
+        const { apikey, apisecret, username } = req.headers;
+        if (!apikey || !apisecret) {
+            var err = new Error("Please Provide a valid API key or API secret!");
+            err.status = 403;
+            return next(err);
+        }
+        const user = await User.findOne({ username: username });
+        if (user.APIKey === apikey && user.APISecret === apisecret) {
+            next();
+        }
+        else {
+            console.log('error');
+            var err = new Error("Invalid API Key or API Secret!");
+            err.status = 403;
+            return next(err);
+        }
+    } catch (err) {
+        var err = new Error("You are not authorized to perform this operation!");
+        err.status = 403;
         return next(err);
     }
 }

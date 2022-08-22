@@ -5,17 +5,24 @@ const passportLocalMongoose = require('passport-local-mongoose');
 var User = new Schema({
     firstname: {
         type: String,
-        default:''
+        default: '',
+        required: true
     },
     lastname: {
         type: String,
-        default: ''
+        default: '',
+        required: true,
     },
     isKeyGenerated: {
         type: Boolean,
-        default: false
+        default: false,
+        required: true,
     },
     APIKey: {
+        type: String,
+        default: ''
+    },
+    APISecret: {
         type: String,
         default: ''
     },
@@ -27,4 +34,4 @@ var User = new Schema({
 
 User.plugin(passportLocalMongoose);//added passport auth
 
-module.exports = mongoose.model('User',User);
+module.exports = mongoose.model('Admins', User);

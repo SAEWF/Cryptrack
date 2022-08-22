@@ -19,33 +19,33 @@ router.get('/', cors.corsWithOptions, authenticate.verifyUser, authenticate.veri
     .catch((err)=>next(err));
 });
 
-router.post('/signup',cors.corsWithOptions, function(req,res,next){
-  User.register(new User({username: req.body.username}), req.body.password, (err,user)=>{
-    if(err){
-        res.statusCode=200;
-        res.setHeader('Content-type','application/json');
-        res.json({err: err});
+router.post('/signup', cors.corsWithOptions, function (req, res, next) {
+  User.register(new User({
+    username: req.body.username,
+    firstname: req.body.firstname,
+    lastname: req.body.lastname,
+    isKeyGenerated: false
+  }), req.body.password, (err, user) => {
+    if (err) {
+      res.statusCode = 200;
+      res.setHeader('Content-type', 'application/json');
+      res.json({ err: err });
     }
-    else{
-      if(req.body.firstname)
-        user.firstname = req.body.firstname;
-      if(req.body.lastname)
-        user.lastname = req.body.lastname;
-
+    else {
       user.save((err, user) => {
-        if(err){
+        if (err) {
           res.statusCode = 500;
-          res.setHeader('Content-type','application/json');
-          res.json({err:err});
+          res.setHeader('Content-type', 'application/json');
+          res.json({ err: err });
           return;
         }
-        passport.authenticate('local')(req, res, ()=> {
+        passport.authenticate('local')(req, res, () => {
         
-        res.statusCode=200;
-        res.setHeader('Content-type','application/json');
-        res.json({status: 'Registration successfull',success: true});
+          res.statusCode = 200;
+          res.setHeader('Content-type', 'application/json');
+          res.json({ status: 'Registration successfull', success: true });
+        });
       });
-    });
     }
   });
 });
@@ -111,7 +111,7 @@ router.get('/checkJWTToken', cors.corsWithOptions, (req,res)=>{
   }) (req,res);
 });
 
-router.get('/generateAPIKey', cors.corsWithOptions, (req,res)=>{
+router.post('/generateAPIKey', cors.corsWithOptions, (req,res)=>{
     User.findOne({username: req.body.username}, (err,user)=>{
       if(err){
         res.statusCode = 500;
@@ -131,12 +131,11 @@ router.get('/generateAPIKey', cors.corsWithOptions, (req,res)=>{
         res.json({status: 'API Key already generated', success: false});
       }
       else{
-        user.apiKey = generateApiKey({method: 'string', length: 24});
-        console.log(user.apiKey);
+        user.APIKey = generateApiKey({ method: 'string', length: 24 });
+        user.APISecret = generateApiKey({ method: 'string', length: 36 });
         user.isKeyGenerated = true;
         user.save((err,user)=>{
           if(err) return next(err);
-
           res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json');
           res.json({status: 'API Key generated', success: true, apiKey: user.apiKey});

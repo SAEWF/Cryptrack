@@ -5,10 +5,15 @@ const cors = require('cors');
 const http = require('http');
 const mongoose = require('mongoose');
 var passport = require('passport');
-const { handleSend, handleForward, handleTrack } = require('./routes');
+const {
+    handleSend,
+    // handleForward,
+    handleTrack
+} = require('./routes');
 var usersRouter = require('./routes/users');
 const config = require('./config');
 const session = require('express-session');
+const { authAPI } = require('./authenticate');
 // const { generateKeyPair } = require('crypto');
 
 const url = config.mongoUrl;
@@ -50,10 +55,10 @@ app.use(passport.session());
 // app.use(passport.session());
 
 app.use('/users', usersRouter);
+app.use(authAPI);
 app.use('/send', handleSend);
-app.use('/forward', handleForward);
+// app.use('/forward', handleForward);
 app.use('/track', handleTrack);
-app.use('/users', usersRouter);
 
 const port = process.env.PORT || 8080;
 
