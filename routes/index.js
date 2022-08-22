@@ -152,7 +152,7 @@ const trackMessage = async (hash) => {
 
 const retrieveMessage = async (hash) => {
 	try {
-		const url = 'https://gateway.pinata.cloud/ipfs/' + hash;
+		const url = 'https://ipfs.originx.games/ipfs/' + hash;
 		// console.log(url);
 		const result = await axios.get(url);
 
@@ -166,7 +166,7 @@ const retrieveMessage = async (hash) => {
 
 const pinJSONToIPFS = async (res, metadata) => {
     try {
-        console.log(metadata);
+        // console.log(metadata);
         const {msg, sender, receiver, time} = metadata;
         if (!time || !msg || !sender || !receiver) {
             throw new Error('Please provide all and valid details!');
@@ -185,10 +185,10 @@ const pinJSONToIPFS = async (res, metadata) => {
             },
         };
 
-        console.log(options);
+        // console.log(options);
 
         const result = await pinata.pinJSONToIPFS({ ...metadata }, options);
-        console.log(result);
+        // console.log(result);
         if (!result.IpfsHash || !result.PinSize) {
             throw new Error('IpfsHash or PinSize not defined');
         }
@@ -203,17 +203,17 @@ const pinJSONToIPFS = async (res, metadata) => {
 const handleSend = async (req, res) => { 
 	try {
 		let { msg, sender, receiver, time, forwarded, prev_sender, prev_time } = req.body;
+		console.log(req.body);
 		let prev_hash, hash;
 		if (forwarded) {
-			prev_hash = await pinJSONToIPFS(res, { msg, sender: prev_sender, receiver: sender, time: prev_time });
-			console.log('previous hash', prev_hash);
+			prev_hash = await pinJSONToIPFS(res, { msg, sender: prev_sender, receiver: sender, time: prev_time.toString() });
+			// console.log('previous hash', prev_hash);
 		}
 			
 		if (!time) time = new Date().getTime();
 
-		hash = await pinJSONToIPFS(res, { msg, sender, receiver, time });
-		console.log('hash', hash);
-    
+		hash = await pinJSONToIPFS(res, { msg, sender, receiver, time: time.toString() });
+		console.log('hash', hash, 'prev_hash', prev_hash);
 		if (prev_hash) 
 			await pushHash(hash, prev_hash)
 		else
@@ -249,14 +249,14 @@ const handleTrack = async (req, res) => {
 		let { msg, sender, receiver, time } = req.body;
 		if (!time) time = new Date().getTime();
 
-		let hash = await pinJSONToIPFS(res, { msg, sender, receiver, time });
-
+		let hash = await pinJSONToIPFS(res, { msg, sender, receiver, time: time.toString() });
+		console.log(hash);
 		const hashes = await trackMessage(hash);
 		let resp = [];
 		// process each ipfsHash and get data from pinata
 		for (let i = 0; i < hashes.length; i++) {
 			const ipfsHash = hashes[i];
-			console.log('ipfsHash', ipfsHash);
+			// console.log('ipfsHash', ipfsHash);
 			const result = await retrieveMessage(ipfsHash);
 			resp.push(result);
 		}
