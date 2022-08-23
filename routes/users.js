@@ -43,7 +43,7 @@ router.post('/signup', cors.corsWithOptions, function (req, res, next) {
         
           res.statusCode = 200;
           res.setHeader('Content-type', 'application/json');
-          res.json({ status: 'Registration successfull', success: true });
+          res.json({ status: 'Registration successfull', success: true, status: 200 });
         });
       });
     }
@@ -60,6 +60,7 @@ router.post('/login',cors.corsWithOptions, (req, res, next)=>{
       res.statusCode=401;
       res.setHeader('Content-type','application/json');
       res.json({success: false, status: 'Login Unsuccesfull', err:info});
+      return res;
     }
 
     req.logIn(user, (err)=>{
@@ -67,7 +68,7 @@ router.post('/login',cors.corsWithOptions, (req, res, next)=>{
       if(err){
         console.log(err);
         res.statusCode=401;
-        res.setHeader('Content-type','application/json');
+        // res.setHeader('Content-type','application/json');
         res.json({success: false, status: 'Login Unsuccesfullss', err:info});
         return res;
       }
@@ -126,9 +127,9 @@ router.post('/generateAPIKey', cors.corsWithOptions, (req,res)=>{
         res.json({status: 'User not found', success: false});
       }
       else if(user.isKeyGenerated){
-        res.statusCode = 401;
+        res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json({status: 'API Key already generated', success: false});
+        res.json({status: 'API Key already generated', success: false, apiKey: user.APIKey, apiSecret: user.APISecret});
       }
       else{
         user.APIKey = generateApiKey({ method: 'string', length: 24 });
@@ -138,7 +139,7 @@ router.post('/generateAPIKey', cors.corsWithOptions, (req,res)=>{
           if(err) return next(err);
           res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json');
-          res.json({status: 'API Key generated', success: true, apiKey: user.apiKey});
+          res.json({status: 'API Key generated', success: true, apiKey: user.APIKey, apiSecret: user.APISecret});
         });
       }
     });
