@@ -167,8 +167,8 @@ const retrieveMessage = async (hash) => {
 const pinJSONToIPFS = async (res, metadata) => {
     try {
         // console.log(metadata);
-        const {msg, sender, receiver, time} = metadata;
-        if (!time || !msg || !sender || !receiver) {
+        const {msg, sender, receiver, time, client} = metadata;
+        if (!time || !msg || !sender || !receiver || !client) {
             throw new Error('Please provide all and valid details!');
         }
 
@@ -210,7 +210,7 @@ const handleSend = async (req, res) => {
 
 		let prev_hash, hash;
 		if (forwarded) {
-			prev_hash = await pinJSONToIPFS(res, { msg, sender: prev_sender, receiver: sender, time: prev_time.toString() });
+			prev_hash = await pinJSONToIPFS(res, { msg, sender: prev_sender, receiver: sender, time: prev_time.toString(), username: client });
 			// console.log('previous hash', prev_hash);
 		}
 			
