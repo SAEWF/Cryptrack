@@ -204,6 +204,10 @@ const handleSend = async (req, res) => {
 	try {
 		let { msg, sender, receiver, time, forwarded, prev_sender, prev_time } = req.body;
 		console.log(req.body);
+		let headers = req.headers;
+
+		const client = headers.username;
+
 		let prev_hash, hash;
 		if (forwarded) {
 			prev_hash = await pinJSONToIPFS(res, { msg, sender: prev_sender, receiver: sender, time: prev_time.toString() });
@@ -212,7 +216,7 @@ const handleSend = async (req, res) => {
 			
 		if (!time) time = new Date().getTime();
 
-		hash = await pinJSONToIPFS(res, { msg, sender, receiver, time: time.toString() });
+		hash = await pinJSONToIPFS(res, { msg, sender, receiver, time: time.toString(), username: client });
 		console.log('hash', hash, 'prev_hash', prev_hash);
 		if (prev_hash) 
 			await pushHash(hash, prev_hash)
@@ -249,7 +253,9 @@ const handleTrack = async (req, res) => {
 		let { msg, sender, receiver, time } = req.body;
 		if (!time) time = new Date().getTime();
 
-		let hash = await pinJSONToIPFS(res, { msg, sender, receiver, time: time.toString() });
+		const client = req.headers.username;
+
+		let hash = await pinJSONToIPFS(res, { msg, sender, receiver, time: time.toString(), username: client });
 		console.log(hash);
 		const hashes = await trackMessage(hash);
 		let resp = [];
