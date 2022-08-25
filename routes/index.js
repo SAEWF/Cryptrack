@@ -167,8 +167,8 @@ const retrieveMessage = async (hash) => {
 const pinJSONToIPFS = async (res, metadata) => {
     try {
         // console.log(metadata);
-        const {msg, sender, receiver, time, client} = metadata;
-        if (!time || !msg || !sender || !receiver || !client) {
+        const {msg, sender, receiver, time, username} = metadata;
+        if (!time || !msg || !sender || !receiver || !username) {
             throw new Error('Please provide all and valid details!');
         }
 
