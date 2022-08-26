@@ -77,6 +77,7 @@ const abi = [
 		"type": "function"
 	}
 ]
+const metadataKeys = ['attachmentData', 'latitude', 'longitude', 'msg', 'receiver', 'sender', 'time', 'username'];
 
 const myContract = new web3.eth.Contract(
     abi,
@@ -167,17 +168,12 @@ const retrieveMessage = async (hash) => {
 const pinJSONToIPFS = async (res, metadata) => {
     try {
         // console.log(metadata);
-        const {msg, sender, receiver, time, username} = metadata;
-        if (!time || !msg || !sender || !receiver || !username) {
-            throw new Error('Please provide all and valid details!');
-        }
-
         const auth = await pinata.testAuthentication();
         const options = {
             pinataMetadata: {
-                name: sender.toString() + '---' + time.toString(),
+                name: metadata?.sender?.toString() + '---' + metadata?.time?.toString(),
                 keyvalues: {
-                    sender: 'v0' + sender.toString(),
+                    sender: 'v0' + metadata?.sender?.toString(),
                 },
             },
             pinataOptions: {
@@ -203,23 +199,44 @@ const pinJSONToIPFS = async (res, metadata) => {
 const handleSend = async (req, res) => { 
 	try {
 		let { msg, sender, receiver, time, forwarded, prev_sender, prev_time } = req.body;
-		console.log(req.body);
+		const reqBody = Object.keys(req.body).sort().reduce(
+			(obj, key) => {
+				obj[key] = req.body[key];
+				return obj;
+			},
+			{}
+		);
+		
+		// console.log(req.body);
+		// console.log(reqBody);
+
 		let headers = req.headers;
 
 		const client = headers.username;
 
 		let prev_hash, hash;
+		let newBody = {};
+		metadataKeys.forEach(k => {
+			newBody[k] = req.body[k];
+		});
+		newBody = { ...newBody, sender: prev_sender, receiver: sender, username: client };
+		console.log('payload1', newBody);
 		if (forwarded) {
-			prev_hash = await pinJSONToIPFS(res, { msg, sender: prev_sender, receiver: sender, time: prev_time.toString(), username: client });
+			prev_hash = await pinJSONToIPFS(res, { ...newBody, time: prev_time.toString() });
 			// console.log('previous hash', prev_hash);
 		}
 			
 		if (!time) time = new Date().getTime();
-
-		hash = await pinJSONToIPFS(res, { msg, sender, receiver, time: time.toString(), username: client });
+		metadataKeys.forEach(k => {
+			newBody[k] = req.body[k];
+		});
+		newBody['username'] = client;
+		// newBody = { ...newBody, sender, receiver, time: time.toString(), username: client };
+		console.log('payload2', newBody);
+		hash = await pinJSONToIPFS(res, newBody);
 		console.log('hash', hash, 'prev_hash', prev_hash);
-		if (prev_hash) 
-			await pushHash(hash, prev_hash)
+		if (prev_hash)
+			await pushHash(hash, prev_hash);
 		else
 			await addHash(hash);
 
@@ -253,9 +270,17 @@ const handleTrack = async (req, res) => {
 		let { msg, sender, receiver, time } = req.body;
 		if (!time) time = new Date().getTime();
 
+		const reqBody = Object.keys(req.body).sort().reduce(
+			(obj, key) => {
+				obj[key] = req.body[key];
+				return obj;
+			},
+			{}
+		);
+
 		const client = req.headers.username;
 
-		let hash = await pinJSONToIPFS(res, { msg, sender, receiver, time: time.toString(), username: client });
+		let hash = await pinJSONToIPFS(res, { ...reqBody, time: time.toString(), username: client });
 		console.log(hash);
 		const hashes = await trackMessage(hash);
 		let resp = [];
@@ -272,7 +297,7 @@ const handleTrack = async (req, res) => {
 		console.log(err.message);
 		return res.status(403).json(err);
 	}
-}
+};
 
 module.exports = {
 	handleSend,
