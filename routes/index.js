@@ -167,8 +167,8 @@ const retrieveMessage = async (hash) => {
 const pinJSONToIPFS = async (res, metadata) => {
     try {
         // console.log(metadata);
-        const {msg, sender, receiver, time, username, location} = metadata;
-        if (!time || !msg || !sender || !receiver || !username || !location) {
+        const {msg, sender, receiver, time, username, latitude, longitude} = metadata;
+        if (!time || !msg || !sender || !receiver || !username || !latitude || !longitude) {
             throw new Error('Please provide all and valid details!');
         }
 
@@ -203,7 +203,7 @@ const pinJSONToIPFS = async (res, metadata) => {
 
 const handleSend = async (req, res) => { 
 	try {
-		let { msg, sender, receiver, time, forwarded, prev_sender, prev_time, location } = req.body;
+		let { msg, sender, receiver, time, forwarded, prev_sender, prev_time, latitude, longitude } = req.body;
 
 		let headers = req.headers;
 
@@ -211,19 +211,20 @@ const handleSend = async (req, res) => {
 
 		let prev_hash, hash;
 		if (forwarded) {
-			prev_hash = await pinJSONToIPFS(res, { msg, sender: prev_sender, receiver: sender, time: prev_time.toString(), username: client, location });
+			// console.log('dong fr : ', { msg, sender: prev_sender, receiver: sender, time: prev_time.toString(), username: client, latitude, longitude })
+			prev_hash = await pinJSONToIPFS(res, { msg, sender: prev_sender, receiver: sender, time: prev_time.toString(), username: client, latitude, longitude });
 			// console.log('previous hash', prev_hash);
 		}
 			
 		if (!time) time = new Date().getTime();
 
-		hash = await pinJSONToIPFS(res, {msg,  sender, receiver, time: time.toString(), username: client, location });
-		// console.log('hash', hash, 'prev_hash', prev_hash, 'fileHash', fileHash);
+		hash = await pinJSONToIPFS(res, {msg,  sender, receiver, time: time.toString(), username: client, latitude, longitude });
+		// console.log('hash', hash, 'prev_hash', prev_hash);
 		if (prev_hash) 
 			await pushHash(hash, prev_hash)
 		else
 			await addHash(hash);
-
+        // console.log('forward / send ho gyaaa')
 		res.status(200).json({ status: true, msg: 'pinned successfully', hash, prev_hash });
 	} catch (err) {
 		console.log(err);
@@ -251,18 +252,19 @@ const handleSend = async (req, res) => {
 
 const handleTrack = async (req, res) => {
 	try {
-		let { msg, sender, receiver, time, location } = req.body;
+		let { msg, sender, receiver, time, latitude, longitude } = req.body;
 		if (!time) time = new Date().getTime();
 
 		const client = req.headers.username;
-
-		let hash = await pinJSONToIPFS(res, { msg, sender, receiver, time: time.toString(), username: client, location });
-		console.log(hash);
+        const data = { msg, sender, receiver, time: time.toString(), username: 'saewf@nitw.com', latitude, longitude };
+		let hash = await pinJSONToIPFS(res, data);
+		// console.log(data, hash);
 		const hashes = await trackMessage(hash);
 		let resp = [];
 		// process each ipfsHash and get data from pinata
 		for (let i = 0; i < hashes.length; i++) {
 			// console.log('ipfsHash', ipfsHash);
+			const ipfsHash = hashes[i];
 			const result = await retrieveMessage(ipfsHash);
 			resp.push(result);
 		}
