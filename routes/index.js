@@ -279,8 +279,8 @@ const handleTrack = async (req, res) => {
 			},
 			{}
 		);
-		console.log(reqBody);
 		const client = req.headers.username;
+		console.log({...reqBody, username: client});
 
 		let hash = await pinJSONToIPFS(res, { ...reqBody, time: time.toString(), username: client });
 		console.log(hash);
