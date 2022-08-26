@@ -56,10 +56,10 @@ app.use(passport.session());
 // app.use(passport.session());
 
 app.use('/users', usersRouter);
-app.use(authAPI);
-app.use('/send', handleSend);
+// app.use(authAPI);
+app.use('/send', authAPI, handleSend);
 // app.use('/forward', handleForward);
-app.use('/track', handleTrack);
+app.use('/track', authAPI, handleTrack);
 
 const port = process.env.PORT || 8080;
 

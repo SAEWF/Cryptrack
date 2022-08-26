@@ -273,11 +273,13 @@ const handleTrack = async (req, res) => {
 		const reqBody = Object.keys(req.body).sort().reduce(
 			(obj, key) => {
 				obj[key] = req.body[key];
+				if (obj[key] === "undefined")
+					obj[key] = undefined;
 				return obj;
 			},
 			{}
 		);
-
+		console.log(reqBody);
 		const client = req.headers.username;
 
 		let hash = await pinJSONToIPFS(res, { ...reqBody, time: time.toString(), username: client });
