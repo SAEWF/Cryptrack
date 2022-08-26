@@ -153,7 +153,7 @@ const trackMessage = async (hash) => {
 
 const retrieveMessage = async (hash) => {
 	try {
-		const url = 'https://ipfs.originx.games/ipfs/' + hash;
+		const url = 'https://gateway.pinata.cloud/ipfs/' + hash;
 		// console.log(url);
 		const result = await axios.get(url);
 
@@ -273,12 +273,19 @@ const handleTrack = async (req, res) => {
 		const reqBody = Object.keys(req.body).sort().reduce(
 			(obj, key) => {
 				obj[key] = req.body[key];
-				if (obj[key] === "undefined")
+				if (obj[key] == "undefined")
 					obj[key] = undefined;
+				else if (obj[key] == "null")
+					obj[key] = null;
 				return obj;
 			},
 			{}
 		);
+		if (reqBody?.attachmentData?.fileUrl == 'null') {
+			reqBody.attachmentData.fileUrl = null;
+			reqBody.attachmentData.file_id = null;
+			reqBody.attachmentData.file_name = null;
+		}
 		const client = req.headers.username;
 		console.log({...reqBody, username: client});
 
