@@ -141,9 +141,10 @@ const pushHash = async (hash, prev_hash) => {
 
 const trackMessage = async (hash) => {
 	try {
+		console.log('calling blockchain')
 		// blockchain call to be written for pushing the node
 		let tx = await myContract.methods.trackAsset(hash).call();
-
+		console.log('tx', tx)
 		return tx;
 	} catch (err) {
 		console.log(err);
@@ -153,7 +154,7 @@ const trackMessage = async (hash) => {
 
 const retrieveMessage = async (hash) => {
 	try {
-		const url = 'https://gateway.pinata.cloud/ipfs/' + hash;
+		const url = 'https://ipfs.originx.games/ipfs/' + hash;
 		// console.log(url);
 		const result = await axios.get(url);
 
@@ -167,7 +168,7 @@ const retrieveMessage = async (hash) => {
 
 const pinJSONToIPFS = async (res, metadata) => {
     try {
-        // console.log(metadata);
+        console.log(metadata);
         const auth = await pinata.testAuthentication();
         const options = {
             pinataMetadata: {
